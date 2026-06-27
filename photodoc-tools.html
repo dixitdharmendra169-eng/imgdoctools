@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoDoc Tools — Government Photo Suite</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f0efe9;color:#1a1a18;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* HEADER */
+.hdr{background:#fff;border-bottom:1px solid #e2e0d8;padding:0 1.5rem;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100}
+.logo-wrap{display:flex;align-items:center;gap:10px;padding:0.9rem 0;margin-right:2rem;border-right:1px solid #e2e0d8;padding-right:1.5rem}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,#1a56db,#1347b5);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px}
+.logo-name{font-size:16px;font-weight:600;color:#1a1a18}
+.logo-tag{font-size:11px;color:#888;display:block}
+.nav{display:flex;gap:0;overflow-x:auto;flex:1}
+.nav-btn{padding:0.85rem 1.1rem;font-size:13px;font-weight:400;color:#666;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all 0.15s;display:flex;align-items:center;gap:6px}
+.nav-btn .ni{font-size:16px}
+.nav-btn.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:500}
+.nav-btn:hover:not(.active){color:#1a1a18;background:#f9f8f5}
+
+/* LAYOUT */
+.main{max-width:1000px;margin:0 auto;padding:1.5rem}
+.tool-panel{display:none}
+.tool-panel.active{display:block}
+.pg-head{margin-bottom:1.5rem}
+.pg-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.pg-sub{font-size:14px;color:#666}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed #c8c5be;border-radius:14px;padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:#fff;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:#1a56db;background:#eef3ff}
+.uz-ico{font-size:38px;margin-bottom:0.6rem}
+.uz-title{font-size:15px;font-weight:500;margin-bottom:3px}
+.uz-sub{font-size:13px;color:#888}
+.uz-formats{margin-top:8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.fmt-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:#f0efe9;color:#666;border:1px solid #e2e0d8}
+
+/* GRID */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.25rem}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.25rem}
+@media(max-width:700px){.two-col,.three-col{grid-template-columns:1fr}}
+
+/* CARD */
+.card{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:1.25rem}
+.card-title{font-size:11px;font-weight:600;margin-bottom:1rem;color:#888;text-transform:uppercase;letter-spacing:0.06em}
+
+/* PREVIEW */
+.preview-wrap{background:#e8e7e2;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:220px;position:relative}
+.preview-wrap canvas{max-width:100%;max-height:400px;display:block}
+.no-preview{color:#aaa;font-size:13px;text-align:center;padding:2rem}
+
+/* CONTROLS */
+.field-label{display:block;font-size:12px;color:#666;margin-bottom:5px;margin-top:12px;font-weight:500}
+.field-label:first-child{margin-top:0}
+input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:8px 10px;border:1px solid #d4d0c8;border-radius:7px;font-size:13px;background:#fff;color:#1a1a18;font-family:inherit;outline:none;transition:border 0.15s}
+input[type=text]:focus,input[type=date]:focus,input[type=number]:focus,select:focus{border-color:#1a56db}
+.range-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;height:4px;accent-color:#1a56db}
+.range-val{font-size:12px;font-weight:600;min-width:36px;text-align:right;color:#1a56db}
+
+/* COLORS */
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.cs{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform 0.1s,border 0.1s;flex-shrink:0}
+.cs.on{border-color:#1a56db;transform:scale(1.2)}
+.cs.white-cs{border-color:#ccc}
+input[type=color]{width:26px;height:26px;border-radius:50%;border:1px solid #d4d0c8;cursor:pointer;padding:0;background:none}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #d4d0c8;background:#fff;color:#1a1a18;transition:all 0.15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#f5f4f0}
+.btn.pri{background:#1a56db;color:#fff;border-color:#1a56db}
+.btn.pri:hover{background:#1547c0}
+.btn.suc{background:#16a34a;color:#fff;border-color:#16a34a}
+.btn.suc:hover{background:#15803d}
+.btn.sm{padding:5px 11px;font-size:12px}
+.btn-row{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+
+/* SIZE OPTIONS */
+.size-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.size-opt{padding:8px 10px;border:1px solid #d4d0c8;border-radius:7px;cursor:pointer;font-size:12px;background:#fff;transition:all 0.15s}
+.size-opt:hover{border-color:#1a56db;color:#1a56db}
+.size-opt.on{border-color:#1a56db;background:#eef3ff;color:#1a56db}
+.size-nm{font-weight:600;font-size:12px}
+.size-dm{color:#999;font-size:11px;margin-top:2px}
+.badge{font-size:10px;padding:1px 6px;border-radius:10px;background:#eef3ff;color:#1a56db;font-weight:600;margin-left:4px}
+
+/* TABS inside panel */
+.sub-tabs{display:flex;gap:0;border-bottom:1px solid #e2e0d8;margin-bottom:1.25rem}
+.stab{padding:0.6rem 1rem;font-size:13px;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s}
+.stab.on{color:#1a56db;border-bottom-color:#1a56db;font-weight:500}
+
+/* TOOL GRID (for convert page) */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-top:1.25rem}
+.tool-card{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:1.25rem;cursor:pointer;transition:all 0.2s;text-align:center}
+.tool-card:hover{border-color:#1a56db;transform:translateY(-2px)}
+.tool-card.selected{border-color:#1a56db;background:#eef3ff}
+.tc-ico{font-size:28px;margin-bottom:8px}
+.tc-name{font-size:13px;font-weight:500}
+.tc-desc{font-size:11px;color:#999;margin-top:3px}
+
+/* PASSPORT GRID */
+.pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}
+.pp-slot{border:1px dashed #d4d0c8;border-radius:6px;overflow:hidden;aspect-ratio:35/45}
+.pp-slot canvas{width:100%;height:100%;display:block}
+
+/* DRAG OVERLAY for DOB */
+.canvas-container{position:relative;overflow:hidden;border-radius:8px}
+#dob-canvas{cursor:crosshair;display:block;max-width:100%}
+
+/* STATUS */
+.status{font-size:12px;color:#16a34a;margin-top:6px;display:flex;align-items:center;gap:4px}
+.status.err{color:#dc2626}
+.status.info{color:#1a56db}
+
+.sep{height:1px;background:#e2e0d8;margin:1rem 0}
+.tip{font-size:12px;color:#888;line-height:1.6;margin-top:6px}
+.pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.pill.blue{background:#eef3ff;color:#1a56db}
+.pill.green{background:#dcfce7;color:#16a34a}
+.pill.orange{background:#fef3c7;color:#d97706}
+.pill.red{background:#fee2e2;color:#dc2626}
+
+.enhance-mode-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem}
+.em-opt{padding:10px 8px;border:1px solid #d4d0c8;border-radius:8px;cursor:pointer;text-align:center;font-size:12px;transition:all 0.15s}
+.em-opt:hover{border-color:#1a56db}
+.em-opt.on{border-color:#1a56db;background:#eef3ff}
+.em-opt .em-label{font-weight:600;font-size:13px}
+.em-opt .em-sub{color:#888;font-size:11px;margin-top:2px}
+
+.quality-bar{height:6px;border-radius:3px;background:#e2e0d8;margin-top:4px;overflow:hidden}
+.quality-fill{height:100%;border-radius:3px;transition:width 0.3s}
+
+.two-preview{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.prev-label{font-size:11px;text-align:center;color:#888;margin-top:4px}
+
+input[type=checkbox]{accent-color:#1a56db}
+.check-row{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px}
+
+.drag-hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.55);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px;pointer-events:none;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo-wrap">
+    <div class="logo">P</div>
+    <div>
+      <div class="logo-name">PhotoDoc</div>
+      <span class="logo-tag">Government Photo Suite</span>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="switchTab('dob',this)"><span class="ni">✍️</span> Add Text / DOB</button>
+    <button class="nav-btn" onclick="switchTab('enhance',this)"><span class="ni">✨</span> Enhance</button>
+    <button class="nav-btn" onclick="switchTab('resize',this)"><span class="ni">📐</span> Resize</button>
+    <button class="nav-btn" onclick="switchTab('passport',this)"><span class="ni">🪪</span> Passport Size</button>
+    <button class="nav-btn" onclick="switchTab('bg',this)"><span class="ni">🎨</span> Background</button>
+    <button class="nav-btn" onclick="switchTab('convert',this)"><span class="ni">🔄</span> Convert &amp; Compress</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ==================== TAB: DOB / TEXT ==================== -->
+<div class="tool-panel active" id="tab-dob">
+  <div class="pg-head">
+    <div class="pg-title">Add text &amp; date of birth</div>
+    <div class="pg-sub">Drag text layers anywhere on your photo. Add DOB, name, or any label — used in Aadhaar, passport, PAN &amp; visa applications.</div>
+  </div>
+
+  <div class="upload-zone" id="dob-drop" onclick="document.getElementById('dob-file').click()">
+    <div class="uz-ico">📷</div>
+    <div class="uz-title">Click or drag your photo here</div>
+    <div class="uz-sub">JPG, PNG, WEBP up to 20MB</div>
+    <div class="uz-formats"><span class="fmt-badge">JPG</span><span class="fmt-badge">PNG</span><span class="fmt-badge">WEBP</span></div>
+    <input type="file" id="dob-file" accept="image/*" style="display:none" onchange="loadDobImage(event)">
+  </div>
+
+  <div id="dob-editor" style="display:none">
+    <div class="two-col">
+      <!-- Controls -->
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-title">Text layers</div>
+          <div id="layers-list"></div>
+          <div class="btn-row" style="margin-top:0.75rem">
+            <button class="btn sm" onclick="addLayer('text')">+ Add text</button>
+            <button class="btn sm" onclick="addLayer('dob')">+ Add DOB</button>
+            <button class="btn sm" onclick="addLayer('name')">+ Add name</button>
+          </div>
+        </div>
+
+        <div class="card" id="layer-props" style="display:none">
+          <div class="card-title">Selected layer <span id="sel-layer-type" class="pill blue"></span></div>
+
+          <label class="field-label">Content</label>
+          <input type="text" id="lp-text" oninput="updateSelLayer()">
+
+          <label class="field-label">DOB (auto-formats)</label>
+          <input type="date" id="lp-dob" oninput="updateSelLayerDob()">
+
+          <div class="sep"></div>
+
+          <label class="field-label">Font size</label>
+          <div class="range-row">
+            <input type="range" id="lp-size" min="10" max="120" value="28" oninput="updateSelLayer()">
+            <span class="range-val" id="lp-size-v">28</span>
+          </div>
+
+          <label class="field-label">Font weight</label>
+          <select id="lp-weight" onchange="updateSelLayer()">
+            <option value="400">Regular</option>
+            <option value="600">Semi-bold</option>
+            <option value="700">Bold</option>
+          </select>
+
+          <label class="field-label">Font family</label>
+          <select id="lp-font" onchange="updateSelLayer()">
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Impact">Impact</option>
+          </select>
+
+          <label class="field-label">Text color</label>
+          <div class="color-row">
+            <div class="cs on" style="background:#111" data-c="#111" onclick="setLayerColor(this)"></div>
+            <div class="cs white-cs" style="background:#fff" data-c="#fff" onclick="setLayerColor(this)"></div>
+            <div class="cs" style="background:#1a56db" data-c="#1a56db" onclick="setLayerColor(this)"></div>
+            <div class="cs" style="background:#dc2626" data-c="#dc2626" onclick="setLayerColor(this)"></div>
+            <div class="cs" style="background:#16a34a" data-c="#16a34a" onclick="setLayerColor(this)"></div>
+            <div class="cs" style="background:#d97706" data-c="#d97706" onclick="setLayerColor(this)"></div>
+            <input type="color" id="lp-color-pick" value="#111111" oninput="updateSelLayerColor(this.value)">
+          </div>
+
+          <label class="field-label">Background behind text</label>
+          <select id="lp-bg" onchange="updateSelLayer()">
+            <option value="none">None</option>
+            <option value="#ffffff">White</option>
+            <option value="#000000">Black</option>
+            <option value="#ffff00">Yellow</option>
+            <option value="#eef3ff">Light blue</option>
+          </select>
+
+          <label class="field-label">Padding</label>
+          <div class="range-row">
+            <input type="range" id="lp-pad" min="0" max="20" value="5" oninput="updateSelLayer()">
+            <span class="range-val" id="lp-pad-v">5</span>
+          </div>
+
+          <label class="field-label">Rotation (°)</label>
+          <div class="range-row">
+            <input type="range" id="lp-rot" min="-180" max="180" value="0" oninput="updateSelLayer()">
+            <span class="range-val" id="lp-rot-v">0°</span>
+          </div>
+
+          <label class="field-label">Opacity</label>
+          <div class="range-row">
+            <input type="range" id="lp-opacity" min="10" max="100" value="100" oninput="updateSelLayer()">
+            <span class="range-val" id="lp-opacity-v">100%</span>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn sm" onclick="deleteSelLayer()">🗑 Delete layer</button>
+            <button class="btn sm" onclick="duplicateSelLayer()">⧉ Duplicate</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div>
+        <div class="card">
+          <div class="card-title">Preview — drag text to reposition</div>
+          <div class="canvas-container" id="dob-wrap">
+            <canvas id="dob-canvas"></canvas>
+            <div class="drag-hint" id="drag-hint">Drag any text to move it</div>
+          </div>
+          <p class="tip" style="margin-top:8px">Click a text element on the canvas to select it, then drag to reposition.</p>
+        </div>
+
+        <div class="btn-row" style="margin-top:1rem">
+          <button class="btn pri" onclick="downloadDob('jpg')">⬇ Download JPG</button>
+          <button class="btn" onclick="downloadDob('png')">⬇ Download PNG</button>
+          <button class="btn" onclick="clearDobLayers()">Clear all</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: ENHANCE ==================== -->
+<div class="tool-panel" id="tab-enhance">
+  <div class="pg-head">
+    <div class="pg-title">Enhance photo</div>
+    <div class="pg-sub">Upscale to 2K/4K, sharpen, and adjust for crisp government ID photos.</div>
+  </div>
+
+  <div class="upload-zone" onclick="document.getElementById('enhance-file').click()">
+    <div class="uz-ico">✨</div>
+    <div class="uz-title">Click or drag your photo here</div>
+    <div class="uz-sub">JPG, PNG up to 20MB</div>
+    <input type="file" id="enhance-file" accept="image/*" style="display:none" onchange="loadEnhanceImage(event)">
+  </div>
+
+  <div class="two-col" id="enhance-editor" style="display:none">
+    <div>
+      <div class="card">
+        <div class="card-title">Enhancement mode</div>
+        <div class="enhance-mode-grid">
+          <div class="em-opt on" data-scale="1" onclick="selectEnhMode(this)">
+            <div class="em-label">Standard</div>
+            <div class="em-sub">Original size</div>
+          </div>
+          <div class="em-opt" data-scale="2" onclick="selectEnhMode(this)">
+            <div class="em-label">2K ×2</div>
+            <div class="em-sub">Double resolution</div>
+            <div class="pill green" style="margin-top:4px">HD</div>
+          </div>
+          <div class="em-opt" data-scale="4" onclick="selectEnhMode(this)">
+            <div class="em-label">4K ×4</div>
+            <div class="em-sub">Quad resolution</div>
+            <div class="pill orange" style="margin-top:4px">4K</div>
+          </div>
+        </div>
+
+        <div id="enh-info" class="tip" style="margin-bottom:1rem;color:#1a56db"></div>
+
+        <div class="sep"></div>
+        <div class="card-title" style="margin-top:0.75rem">Adjustments</div>
+
+        <label class="field-label">Brightness</label>
+        <div class="range-row">
+          <input type="range" id="e-bright" min="-100" max="100" value="0" oninput="renderEnhance();document.getElementById('e-bright-v').textContent=this.value">
+          <span class="range-val" id="e-bright-v">0</span>
+        </div>
+
+        <label class="field-label">Contrast</label>
+        <div class="range-row">
+          <input type="range" id="e-contrast" min="-100" max="100" value="0" oninput="renderEnhance();document.getElementById('e-contrast-v').textContent=this.value">
+          <span class="range-val" id="e-contrast-v">0</span>
+        </div>
+
+        <label class="field-label">Saturation</label>
+        <div class="range-row">
+          <input type="range" id="e-sat" min="-100" max="100" value="0" oninput="renderEnhance();document.getElementById('e-sat-v').textContent=this.value">
+          <span class="range-val" id="e-sat-v">0</span>
+        </div>
+
+        <label class="field-label">Sharpen</label>
+        <div class="range-row">
+          <input type="range" id="e-sharp" min="0" max="8" step="0.5" value="0" oninput="renderEnhance();document.getElementById('e-sharp-v').textContent=this.value">
+          <span class="range-val" id="e-sharp-v">0</span>
+        </div>
+
+        <label class="field-label">Noise reduction</label>
+        <div class="range-row">
+          <input type="range" id="e-noise" min="0" max="5" step="0.5" value="0" oninput="renderEnhance();document.getElementById('e-noise-v').textContent=this.value">
+          <span class="range-val" id="e-noise-v">0</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn pri" onclick="downloadEnhanced()">⬇ Download</button>
+          <button class="btn" onclick="resetEnhance()">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Preview</div>
+        <div class="two-preview">
+          <div>
+            <div class="preview-wrap"><canvas id="enh-before"></canvas></div>
+            <div class="prev-label">Original</div>
+          </div>
+          <div>
+            <div class="preview-wrap"><canvas id="enhance-canvas"></canvas></div>
+            <div class="prev-label">Enhanced</div>
+          </div>
+        </div>
+        <div id="enh-size-info" class="tip" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: RESIZE ==================== -->
+<div class="tool-panel" id="tab-resize">
+  <div class="pg-head">
+    <div class="pg-title">Resize &amp; crop photo</div>
+    <div class="pg-sub">Resize to exact dimensions for government forms — output at 300 DPI print quality.</div>
+  </div>
+
+  <div class="upload-zone" onclick="document.getElementById('resize-file').click()">
+    <div class="uz-ico">📐</div>
+    <div class="uz-title">Click or drag your photo here</div>
+    <div class="uz-sub">JPG, PNG, WEBP up to 20MB</div>
+    <input type="file" id="resize-file" accept="image/*" style="display:none" onchange="loadResizeImage(event)">
+  </div>
+
+  <div id="resize-editor" style="display:none; margin-top:1.25rem">
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <div class="card-title">Standard sizes</div>
+          <div class="size-grid">
+            <div class="size-opt on" data-w="35" data-h="45" onclick="selectSz(this)"><div class="size-nm">Passport <span class="badge">India</span></div><div class="size-dm">35×45 mm · 413×531 px</div></div>
+            <div class="size-opt" data-w="51" data-h="51" onclick="selectSz(this)"><div class="size-nm">US Visa</div><div class="size-dm">51×51 mm · 600×600 px</div></div>
+            <div class="size-opt" data-w="35" data-h="35" onclick="selectSz(this)"><div class="size-nm">PAN Card</div><div class="size-dm">35×35 mm · 413×413 px</div></div>
+            <div class="size-opt" data-w="30" data-h="40" onclick="selectSz(this)"><div class="size-nm">Aadhaar</div><div class="size-dm">30×40 mm · 354×472 px</div></div>
+            <div class="size-opt" data-w="25" data-h="30" onclick="selectSz(this)"><div class="size-nm">Driving Licence</div><div class="size-dm">25×30 mm · 295×354 px</div></div>
+            <div class="size-opt" data-w="40" data-h="50" onclick="selectSz(this)"><div class="size-nm">Voter ID</div><div class="size-dm">40×50 mm · 472×590 px</div></div>
+            <div class="size-opt" data-w="45" data-h="35" onclick="selectSz(this)"><div class="size-nm">VISA (landscape)</div><div class="size-dm">45×35 mm</div></div>
+            <div class="size-opt" data-w="51" data-h="51" onclick="selectSz(this)"><div class="size-nm">UK Passport</div><div class="size-dm">35×45 mm</div></div>
+          </div>
+          <div class="sep"></div>
+          <div class="card-title">Custom size</div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
+            <div><label class="field-label">Width</label><input type="number" id="cw" placeholder="px"></div>
+            <div style="padding-top:20px;color:#888;font-size:13px">×</div>
+            <div><label class="field-label">Height</label><input type="number" id="ch" placeholder="px"></div>
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="keep-ratio" checked>
+            <label for="keep-ratio">Maintain aspect ratio</label>
+          </div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="doResize()">⬇ Resize &amp; Download</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">Preview</div>
+          <div class="preview-wrap"><canvas id="resize-canvas" style="max-width:100%;max-height:360px"></canvas></div>
+          <div id="resize-info" class="tip" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: PASSPORT ==================== -->
+<div class="tool-panel" id="tab-passport">
+  <div class="pg-head">
+    <div class="pg-title">Passport size photo maker</div>
+    <div class="pg-sub">Auto-crop and print multiple passport photos on a single sheet — ready for government offices.</div>
+  </div>
+
+  <div class="upload-zone" onclick="document.getElementById('pp-file').click()">
+    <div class="uz-ico">🪪</div>
+    <div class="uz-title">Click or drag your photo here</div>
+    <div class="uz-sub">Best with a clear front-facing portrait on white/light background</div>
+    <input type="file" id="pp-file" accept="image/*" style="display:none" onchange="loadPassportImage(event)">
+  </div>
+
+  <div id="pp-editor" style="display:none; margin-top:1.25rem">
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <div class="card-title">Photo standard</div>
+          <div class="size-grid" id="pp-sizes">
+            <div class="size-opt on" data-pw="35" data-ph="45" data-name="India Passport" onclick="selectPpSize(this)"><div class="size-nm">India Passport</div><div class="size-dm">35×45 mm</div></div>
+            <div class="size-opt" data-pw="51" data-ph="51" data-name="US Passport" onclick="selectPpSize(this)"><div class="size-nm">US Passport</div><div class="size-dm">51×51 mm</div></div>
+            <div class="size-opt" data-pw="35" data-ph="45" data-name="UK Passport" onclick="selectPpSize(this)"><div class="size-nm">UK Passport</div><div class="size-dm">35×45 mm</div></div>
+            <div class="size-opt" data-pw="35" data-ph="35" data-name="PAN Card" onclick="selectPpSize(this)"><div class="size-nm">PAN Card</div><div class="size-dm">35×35 mm</div></div>
+          </div>
+
+          <div class="sep"></div>
+          <div class="card-title">Sheet layout</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label class="field-label">Columns</label>
+              <select id="pp-cols" onchange="renderPassport()"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option></select>
+            </div>
+            <div>
+              <label class="field-label">Rows</label>
+              <select id="pp-rows" onchange="renderPassport()"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+          </div>
+
+          <label class="field-label">Gap between photos (px)</label>
+          <div class="range-row">
+            <input type="range" id="pp-gap" min="0" max="20" value="4" oninput="renderPassport();document.getElementById('pp-gap-v').textContent=this.value+'px'">
+            <span class="range-val" id="pp-gap-v">4px</span>
+          </div>
+
+          <label class="field-label">Background color</label>
+          <div class="color-row">
+            <div class="cs white-cs on" data-c="#ffffff" onclick="selectPpBg(this)" style="background:#fff"></div>
+            <div class="cs" data-c="#cce5ff" onclick="selectPpBg(this)" style="background:#cce5ff"></div>
+            <div class="cs" data-c="#e8e8e8" onclick="selectPpBg(this)" style="background:#e8e8e8"></div>
+            <input type="color" id="pp-bg-pick" value="#ffffff" oninput="renderPassport()">
+          </div>
+
+          <div class="btn-row">
+            <button class="btn pri" onclick="downloadPassport()">⬇ Download print sheet</button>
+            <button class="btn" onclick="downloadSinglePassport()">⬇ Single photo</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title">Sheet preview</div>
+          <div class="preview-wrap">
+            <canvas id="pp-sheet-canvas" style="max-width:100%"></canvas>
+          </div>
+          <div id="pp-count-info" class="tip" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: BACKGROUND ==================== -->
+<div class="tool-panel" id="tab-bg">
+  <div class="pg-head">
+    <div class="pg-title">Change background</div>
+    <div class="pg-sub">Add or replace background color — white is standard for most Indian government forms.</div>
+  </div>
+
+  <div class="upload-zone" onclick="document.getElementById('bg-file').click()">
+    <div class="uz-ico">🎨</div>
+    <div class="uz-title">Click or drag your photo here</div>
+    <div class="uz-sub">PNG with transparent background works best for background removal</div>
+    <input type="file" id="bg-file" accept="image/*" style="display:none" onchange="loadBgImage(event)">
+  </div>
+
+  <div class="two-col" id="bg-editor" style="display:none">
+    <div>
+      <div class="card">
+        <div class="card-title">Background color</div>
+        <div class="color-row">
+          <div class="cs white-cs on" data-c="#ffffff" onclick="selectBgCol(this)" style="background:#fff"></div>
+          <div class="cs" data-c="#cce5ff" onclick="selectBgCol(this)" style="background:#cce5ff"></div>
+          <div class="cs" data-c="#d4edda" onclick="selectBgCol(this)" style="background:#d4edda"></div>
+          <div class="cs" data-c="#f8d7da" onclick="selectBgCol(this)" style="background:#f8d7da"></div>
+          <div class="cs" data-c="#e8e8e8" onclick="selectBgCol(this)" style="background:#e8e8e8"></div>
+          <div class="cs" data-c="#111111" onclick="selectBgCol(this)" style="background:#111"></div>
+          <input type="color" id="bg-color-pick" value="#ffffff" oninput="renderBg()">
+        </div>
+        <div class="tip" style="margin-top:8px">White is required for India passport, Aadhaar, PAN Card. Light blue is used for some visa applications.</div>
+        <div class="btn-row">
+          <button class="btn pri" onclick="downloadBg('jpg')">⬇ Download JPG</button>
+          <button class="btn" onclick="downloadBg('png')">⬇ Download PNG</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Preview</div>
+        <div class="preview-wrap"><canvas id="bg-canvas"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: CONVERT ==================== -->
+<div class="tool-panel" id="tab-convert">
+  <div class="pg-head">
+    <div class="pg-title">Convert &amp; Compress</div>
+    <div class="pg-sub">Convert between formats, compress file size, and batch process your images.</div>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="stab on" onclick="switchConv('compress',this)">Compress</button>
+    <button class="stab" onclick="switchConv('to-jpg',this)">To JPG</button>
+    <button class="stab" onclick="switchConv('to-png',this)">To PNG</button>
+    <button class="stab" onclick="switchConv('to-webp',this)">To WEBP</button>
+    <button class="stab" onclick="switchConv('to-img',this)">PDF → Image</button>
+    <button class="stab" onclick="switchConv('batch',this)">Batch resize</button>
+  </div>
+
+  <!-- COMPRESS -->
+  <div id="conv-compress" class="conv-panel">
+    <div class="upload-zone" onclick="document.getElementById('comp-file').click()">
+      <div class="uz-ico">🗜</div>
+      <div class="uz-title">Click or drag image to compress</div>
+      <div class="uz-sub">JPG, PNG, WEBP</div>
+      <input type="file" id="comp-file" accept="image/*" style="display:none" onchange="loadCompressImage(event)">
+    </div>
+    <div id="comp-editor" style="display:none;margin-top:1.25rem">
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-title">Compression settings</div>
+            <label class="field-label">Quality</label>
+            <div class="range-row">
+              <input type="range" id="comp-q" min="5" max="100" value="80" oninput="renderCompress()">
+              <span class="range-val" id="comp-q-v">80%</span>
+            </div>
+            <div class="quality-bar"><div class="quality-fill" id="comp-q-bar" style="width:80%;background:#16a34a"></div></div>
+            <label class="field-label" style="margin-top:12px">Output format</label>
+            <select id="comp-fmt" onchange="renderCompress()">
+              <option value="jpeg">JPG (smallest for photos)</option>
+              <option value="png">PNG (lossless)</option>
+              <option value="webp">WEBP (best compression)</option>
+            </select>
+            <div id="comp-stats" class="card" style="margin-top:1rem;background:#f9f8f5;border:none">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><div style="font-size:11px;color:#888">Original size</div><div id="orig-size" style="font-size:18px;font-weight:600">—</div></div>
+                <div><div style="font-size:11px;color:#888">Compressed size</div><div id="comp-size" style="font-size:18px;font-weight:600;color:#16a34a">—</div></div>
+                <div><div style="font-size:11px;color:#888">Saved</div><div id="comp-saved" style="font-size:18px;font-weight:600;color:#1a56db">—</div></div>
+                <div><div style="font-size:11px;color:#888">Dimensions</div><div id="comp-dim" style="font-size:13px;font-weight:500;color:#666;margin-top:4px">—</div></div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn pri" onclick="downloadCompressed()">⬇ Download compressed</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Preview</div>
+            <div class="two-preview">
+              <div>
+                <div class="preview-wrap"><canvas id="comp-before"></canvas></div>
+                <div class="prev-label">Original</div>
+              </div>
+              <div>
+                <div class="preview-wrap"><canvas id="comp-after"></canvas></div>
+                <div class="prev-label">Compressed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TO JPG -->
+  <div id="conv-to-jpg" class="conv-panel" style="display:none">
+    <div class="upload-zone" onclick="document.getElementById('tojpg-file').click()">
+      <div class="uz-ico">🖼</div>
+      <div class="uz-title">Convert any image to JPG</div>
+      <div class="uz-sub">PNG, WEBP, GIF, BMP → JPG</div>
+      <input type="file" id="tojpg-file" accept="image/*" style="display:none" onchange="doConvert(event,'jpeg','jpg')">
+    </div>
+    <div id="tojpg-result" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- TO PNG -->
+  <div id="conv-to-png" class="conv-panel" style="display:none">
+    <div class="upload-zone" onclick="document.getElementById('topng-file').click()">
+      <div class="uz-ico">🖼</div>
+      <div class="uz-title">Convert any image to PNG</div>
+      <div class="uz-sub">JPG, WEBP, GIF, BMP → PNG (lossless)</div>
+      <input type="file" id="topng-file" accept="image/*" style="display:none" onchange="doConvert(event,'png','png')">
+    </div>
+    <div id="topng-result" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- TO WEBP -->
+  <div id="conv-to-webp" class="conv-panel" style="display:none">
+    <div class="upload-zone" onclick="document.getElementById('towebp-file').click()">
+      <div class="uz-ico">🖼</div>
+      <div class="uz-title">Convert any image to WEBP</div>
+      <div class="uz-sub">JPG, PNG, GIF → WEBP (best web format)</div>
+      <input type="file" id="towebp-file" accept="image/*" style="display:none" onchange="doConvert(event,'webp','webp')">
+    </div>
+    <div id="towebp-result" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- PDF TO IMAGE -->
+  <div id="conv-to-img" class="conv-panel" style="display:none">
+    <div class="upload-zone" style="cursor:default;border-style:solid;background:#fff9f0;border-color:#f59e0b">
+      <div class="uz-ico">📄</div>
+      <div class="uz-title" style="color:#d97706">PDF → Image</div>
+      <div class="uz-sub">PDF to image conversion requires a server-side tool.<br>Use <strong>ILovePDF.com</strong> or <strong>Smallpdf.com</strong> for free PDF conversion online.</div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+        <a href="https://www.ilovepdf.com/pdf_to_jpg" target="_blank" class="btn pri">Open ILovePDF ↗</a>
+        <a href="https://smallpdf.com/pdf-to-image" target="_blank" class="btn">Open Smallpdf ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- BATCH RESIZE -->
+  <div id="conv-batch" class="conv-panel" style="display:none">
+    <div class="upload-zone" onclick="document.getElementById('batch-files').click()">
+      <div class="uz-ico">📦</div>
+      <div class="uz-title">Select multiple images to batch resize</div>
+      <div class="uz-sub">Select up to 20 images at once</div>
+      <input type="file" id="batch-files" accept="image/*" multiple style="display:none" onchange="loadBatchImages(event)">
+    </div>
+    <div id="batch-editor" style="display:none;margin-top:1.25rem">
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-title">Batch settings</div>
+            <label class="field-label">Max width (px)</label>
+            <input type="number" id="batch-w" placeholder="e.g. 800" value="800">
+            <label class="field-label">Max height (px)</label>
+            <input type="number" id="batch-h" placeholder="e.g. 600" value="600">
+            <div class="check-row"><input type="checkbox" id="batch-ratio" checked><label for="batch-ratio">Maintain aspect ratio</label></div>
+            <label class="field-label" style="margin-top:12px">Output format</label>
+            <select id="batch-fmt">
+              <option value="jpeg">JPG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WEBP</option>
+            </select>
+            <label class="field-label">Quality</label>
+            <div class="range-row">
+              <input type="range" id="batch-q" min="50" max="100" value="85">
+              <span class="range-val" id="batch-q-v">85%</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn pri" onclick="downloadBatch()">⬇ Download all</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Files loaded</div>
+            <div id="batch-list" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ====================== GLOBAL STATE ======================
+let dobImg=null,dobLayers=[],selLayerIdx=-1,dobDragging=false,dobDragOffX=0,dobDragOffY=0;
+let enhanceImg=null,enhScale=1;
+let resizeImg=null;
+let ppImg=null,ppBgColor='#ffffff',ppSizeW=35,ppSizeH=45;
+let bgImg=null,bgColor='#ffffff';
+let compImg=null,compOrigBlob=null,compOutData=null;
+let batchImgs=[];
+
+// ====================== SHARED ======================
+function switchTab(id,btn){
+  document.querySelectorAll('.tool-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+function switchConv(id,btn){
+  document.querySelectorAll('.conv-panel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('conv-'+id).style.display='block';
+  if(btn)btn.classList.add('on');
+}
+function fmtBytes(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(2)+'MB';}
+function loadImg(file,cb){
+  const r=new FileReader();
+  r.onload=ev=>{const img=new Image();img.onload=()=>cb(img);img.src=ev.target.result;};
+  r.readAsDataURL(file);
+}
+function dlCanvas(canvas,name,type='image/jpeg',quality=0.95){
+  const a=document.createElement('a');
+  a.download=name;
+  a.href=canvas.toDataURL(type,quality);
+  a.click();
+}
+
+// ====================== DOB / TEXT ======================
+function loadDobImage(e){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{
+    dobImg=img;
+    dobLayers=[];selLayerIdx=-1;
+    document.getElementById('dob-editor').style.display='block';
+    document.getElementById('layer-props').style.display='none';
+    document.getElementById('layers-list').innerHTML='';
+    renderDob();
+  });
+}
+function makePtX(canvas){return canvas.getBoundingClientRect();}
+function addLayer(type){
+  const canvas=document.getElementById('dob-canvas');
+  const x=Math.round(canvas.width/2),y=Math.round(canvas.height*0.85);
+  let text='Your text here';
+  if(type==='dob') text='DOB: DD/MM/YYYY';
+  if(type==='name') text='Name: Enter Name';
+  dobLayers.push({type,text,x,y,size:28,weight:'400',font:'Arial',color:'#111111',bg:'none',pad:5,rot:0,opacity:100});
+  selLayerIdx=dobLayers.length-1;
+  refreshLayersList();
+  updateLayerProps();
+  renderDob();
+}
+function refreshLayersList(){
+  const el=document.getElementById('layers-list');
+  el.innerHTML=dobLayers.map((l,i)=>`
+    <div onclick="selectLayer(${i})" style="padding:6px 10px;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:space-between;background:${selLayerIdx===i?'#eef3ff':'#f9f8f5'};border:1px solid ${selLayerIdx===i?'#1a56db':'#e2e0d8'};margin-bottom:5px">
+      <span>${l.type==='dob'?'📅':'✏'} ${l.text.substring(0,22)}${l.text.length>22?'…':''}</span>
+      <span style="font-size:11px;color:#888">Layer ${i+1}</span>
+    </div>
+  `).join('');
+}
+function selectLayer(i){selLayerIdx=i;refreshLayersList();updateLayerProps();renderDob();}
+function updateLayerProps(){
+  const el=document.getElementById('layer-props');
+  if(selLayerIdx<0||selLayerIdx>=dobLayers.length){el.style.display='none';return;}
+  el.style.display='block';
+  const l=dobLayers[selLayerIdx];
+  document.getElementById('lp-text').value=l.text;
+  document.getElementById('lp-size').value=l.size;
+  document.getElementById('lp-size-v').textContent=l.size;
+  document.getElementById('lp-weight').value=l.weight;
+  document.getElementById('lp-font').value=l.font;
+  document.getElementById('lp-color-pick').value=l.color.length===7?l.color:'#111111';
+  document.getElementById('lp-bg').value=l.bg;
+  document.getElementById('lp-pad').value=l.pad;
+  document.getElementById('lp-pad-v').textContent=l.pad;
+  document.getElementById('lp-rot').value=l.rot;
+  document.getElementById('lp-rot-v').textContent=l.rot+'°';
+  document.getElementById('lp-opacity').value=l.opacity;
+  document.getElementById('lp-opacity-v').textContent=l.opacity+'%';
+  document.getElementById('sel-layer-type').textContent=l.type;
+}
+function updateSelLayer(){
+  if(selLayerIdx<0)return;
+  const l=dobLayers[selLayerIdx];
+  l.text=document.getElementById('lp-text').value;
+  l.size=parseInt(document.getElementById('lp-size').value);
+  l.weight=document.getElementById('lp-weight').value;
+  l.font=document.getElementById('lp-font').value;
+  l.bg=document.getElementById('lp-bg').value;
+  l.pad=parseInt(document.getElementById('lp-pad').value);
+  l.rot=parseInt(document.getElementById('lp-rot').value);
+  l.opacity=parseInt(document.getElementById('lp-opacity').value);
+  document.getElementById('lp-size-v').textContent=l.size;
+  document.getElementById('lp-pad-v').textContent=l.pad;
+  document.getElementById('lp-rot-v').textContent=l.rot+'°';
+  document.getElementById('lp-opacity-v').textContent=l.opacity+'%';
+  refreshLayersList();
+  renderDob();
+}
+function updateSelLayerDob(){
+  if(selLayerIdx<0)return;
+  const d=document.getElementById('lp-dob').value;
+  if(!d)return;
+  const dt=new Date(d+'T00:00:00');
+  const str=dt.getDate().toString().padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();
+  dobLayers[selLayerIdx].text='DOB: '+str;
+  document.getElementById('lp-text').value='DOB: '+str;
+  refreshLayersList();renderDob();
+}
+function setLayerColor(el){
+  document.querySelectorAll('#layer-props .color-row .cs').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  if(selLayerIdx<0)return;
+  dobLayers[selLayerIdx].color=el.dataset.c;
+  document.getElementById('lp-color-pick').value=el.dataset.c.length===7?el.dataset.c:'#111111';
+  renderDob();
+}
+function updateSelLayerColor(v){if(selLayerIdx<0)return;dobLayers[selLayerIdx].color=v;renderDob();}
+function deleteSelLayer(){if(selLayerIdx<0)return;dobLayers.splice(selLayerIdx,1);selLayerIdx=Math.min(selLayerIdx,dobLayers.length-1);refreshLayersList();updateLayerProps();renderDob();}
+function duplicateSelLayer(){if(selLayerIdx<0)return;const l={...dobLayers[selLayerIdx],x:dobLayers[selLayerIdx].x+20,y:dobLayers[selLayerIdx].y+20};dobLayers.push(l);selLayerIdx=dobLayers.length-1;refreshLayersList();updateLayerProps();renderDob();}
+function clearDobLayers(){dobLayers=[];selLayerIdx=-1;refreshLayersList();document.getElementById('layer-props').style.display='none';renderDob();}
+
+function renderDob(offscreen){
+  if(!dobImg)return null;
+  const canvas=offscreen||document.getElementById('dob-canvas');
+  const ctx=canvas.getContext('2d');
+  if(!offscreen){
+    const maxW=canvas.parentElement.clientWidth||400;
+    const scale=Math.min(1,maxW/dobImg.width);
+    canvas.width=dobImg.width;canvas.height=dobImg.height;
+    canvas.style.transform=`scale(${scale})`;
+    canvas.style.transformOrigin='top left';
+    canvas.style.marginBottom=`${(dobImg.height*(scale-1))}px`;
+  } else {
+    canvas.width=dobImg.width;canvas.height=dobImg.height;
+  }
+  ctx.drawImage(dobImg,0,0);
+  dobLayers.forEach((l,i)=>{
+    ctx.save();
+    ctx.globalAlpha=l.opacity/100;
+    ctx.translate(l.x,l.y);
+    ctx.rotate(l.rot*Math.PI/180);
+    ctx.font=`${l.weight} ${l.size}px ${l.font}`;
+    const tw=ctx.measureText(l.text).width;
+    const th=l.size;
+    const pd=l.pad;
+    if(l.bg!=='none'){
+      ctx.fillStyle=l.bg;
+      ctx.fillRect(-tw/2-pd,-th-pd,tw+pd*2,th+pd*2+4);
+    }
+    ctx.fillStyle=l.color;
+    ctx.textAlign='center';
+    ctx.textBaseline='alphabetic';
+    ctx.fillText(l.text,0,0);
+    if(i===selLayerIdx&&!offscreen){
+      ctx.strokeStyle='#1a56db';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+      ctx.strokeRect(-tw/2-pd-2,-th-pd-2,tw+pd*2+4,th+pd*2+8);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  });
+  return canvas;
+}
+
+// Drag logic
+const dobCanvas=document.getElementById('dob-canvas');
+dobCanvas.addEventListener('mousedown',e=>{
+  if(!dobImg)return;
+  const rect=dobCanvas.getBoundingClientRect();
+  const scaleX=dobImg.width/rect.width,scaleY=dobImg.height/rect.height;
+  const mx=(e.clientX-rect.left)*scaleX,my=(e.clientY-rect.top)*scaleY;
+  for(let i=dobLayers.length-1;i>=0;i--){
+    const l=dobLayers[i];
+    const tempC=document.createElement('canvas');
+    tempC.width=dobImg.width;tempC.height=dobImg.height;
+    const tc=tempC.getContext('2d');
+    tc.font=`${l.weight} ${l.size}px ${l.font}`;
+    const tw=tc.measureText(l.text).width+l.pad*2+10;
+    const th=l.size+l.pad*2+10;
+    if(mx>=l.x-tw/2&&mx<=l.x+tw/2&&my>=l.y-th&&my<=l.y+10){
+      dobDragging=true;dobDragOffX=mx-l.x;dobDragOffY=my-l.y;
+      selLayerIdx=i;refreshLayersList();updateLayerProps();renderDob();
+      document.getElementById('drag-hint').style.display='none';
+      break;
+    }
+  }
+});
+dobCanvas.addEventListener('mousemove',e=>{
+  if(!dobDragging||selLayerIdx<0)return;
+  const rect=dobCanvas.getBoundingClientRect();
+  const scaleX=dobImg.width/rect.width,scaleY=dobImg.height/rect.height;
+  dobLayers[selLayerIdx].x=Math.round((e.clientX-rect.left)*scaleX-dobDragOffX);
+  dobLayers[selLayerIdx].y=Math.round((e.clientY-rect.top)*scaleY-dobDragOffY);
+  renderDob();
+});
+dobCanvas.addEventListener('mouseup',()=>{dobDragging=false;});
+dobCanvas.addEventListener('mouseleave',()=>{dobDragging=false;});
+
+// Touch drag
+dobCanvas.addEventListener('touchstart',e=>{
+  const t=e.touches[0];
+  const me=new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY});
+  dobCanvas.dispatchEvent(me);e.preventDefault();},{passive:false});
+dobCanvas.addEventListener('touchmove',e=>{
+  const t=e.touches[0];
+  const me=new MouseEvent('mousemove',{clientX:t.clientX,clientY:t.clientY});
+  dobCanvas.dispatchEvent(me);e.preventDefault();},{passive:false});
+dobCanvas.addEventListener('touchend',()=>dobDragging=false);
+
+function downloadDob(fmt){
+  const off=document.createElement('canvas');
+  renderDob(off);
+  dlCanvas(off,'photo-with-text.'+fmt,fmt==='png'?'image/png':'image/jpeg',0.96);
+}
+
+// ====================== ENHANCE ======================
+function loadEnhanceImage(e){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{
+    enhanceImg=img;
+    document.getElementById('enhance-editor').style.display='grid';
+    const b=document.getElementById('enh-before');
+    b.width=Math.min(img.width,300);b.height=img.height*(b.width/img.width);
+    b.getContext('2d').drawImage(img,0,0,b.width,b.height);
+    renderEnhance();
+  });
+}
+function selectEnhMode(el){
+  document.querySelectorAll('.em-opt').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  enhScale=parseInt(el.dataset.scale);
+  renderEnhance();
+}
+function renderEnhance(){
+  if(!enhanceImg)return;
+  const canvas=document.getElementById('enhance-canvas');
+  const ctx=canvas.getContext('2d');
+  const bright=parseInt(document.getElementById('e-bright').value);
+  const contrast=parseInt(document.getElementById('e-contrast').value);
+  const sat=parseInt(document.getElementById('e-sat').value);
+  const sharp=parseFloat(document.getElementById('e-sharp').value);
+  const noise=parseFloat(document.getElementById('e-noise').value);
+  const W=enhanceImg.width*enhScale,H=enhanceImg.height*enhScale;
+  canvas.width=W;canvas.height=H;
+  const c=Math.max(0,Math.min(300,100+contrast))/100;
+  const bPct=1+bright/100;
+  const sPct=1+sat/100;
+  if(enhScale>1){
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+  }
+  ctx.filter=`brightness(${bPct}) contrast(${c}) saturate(${sPct})`;
+  ctx.drawImage(enhanceImg,0,0,W,H);
+  ctx.filter='none';
+  if(sharp>0){
+    const data=ctx.getImageData(0,0,W,H);
+    sharpenImg(ctx,data,sharp);
+  }
+  if(noise>0){
+    const data2=ctx.getImageData(0,0,W,H);
+    blurImg(ctx,data2,noise);
+  }
+  const info=document.getElementById('enh-size-info');
+  info.textContent=`Output: ${W}×${H}px (${enhScale===1?'Original':enhScale+'× upscale'})`;
+  document.getElementById('enh-info').textContent=enhScale===1?'Standard — original resolution':
+    enhScale===2?`2K upscale — output will be ${W}×${H}px using bicubic interpolation + sharpening`:
+    `4K upscale — output will be ${W}×${H}px. Uses high-quality interpolation. Best combined with Sharpen.`;
+}
+function sharpenImg(ctx,imgData,amount){
+  const w=imgData.width,h=imgData.height,d=imgData.data;
+  const k=[-1,-1,-1,-1,8+amount,-1,-1,-1,-1];
+  const out=ctx.createImageData(w,h);
+  for(let y=1;y<h-1;y++){for(let x=1;x<w-1;x++){
+    let r=0,g=0,b=0;
+    for(let ky=-1;ky<=1;ky++){for(let kx=-1;kx<=1;kx++){
+      const i=((y+ky)*w+(x+kx))*4;const kv=k[(ky+1)*3+(kx+1)];
+      r+=d[i]*kv;g+=d[i+1]*kv;b+=d[i+2]*kv;
+    }}
+    const i=(y*w+x)*4;
+    out.data[i]=Math.min(255,Math.max(0,r));
+    out.data[i+1]=Math.min(255,Math.max(0,g));
+    out.data[i+2]=Math.min(255,Math.max(0,b));
+    out.data[i+3]=d[i+3];
+  }}
+  ctx.putImageData(out,0,0);
+}
+function blurImg(ctx,imgData,r){
+  const w=imgData.width,h=imgData.height,d=imgData.data;
+  const out=ctx.createImageData(w,h);
+  const ir=Math.floor(r);
+  for(let y=0;y<h;y++){for(let x=0;x<w;x++){
+    let r2=0,g2=0,b2=0,cnt=0;
+    for(let dy=-ir;dy<=ir;dy++){for(let dx=-ir;dx<=ir;dx++){
+      const nx=x+dx,ny=y+dy;
+      if(nx>=0&&nx<w&&ny>=0&&ny<h){const i=(ny*w+nx)*4;r2+=d[i];g2+=d[i+1];b2+=d[i+2];cnt++;}
+    }}
+    const i=(y*w+x)*4;
+    out.data[i]=r2/cnt;out.data[i+1]=g2/cnt;out.data[i+2]=b2/cnt;out.data[i+3]=d[i+3];
+  }}
+  ctx.putImageData(out,0,0);
+}
+function resetEnhance(){
+  ['e-bright','e-contrast','e-sat','e-sharp','e-noise'].forEach(id=>{
+    const el=document.getElementById(id);el.value=0;
+    const v=document.getElementById(id+'-v');if(v)v.textContent=0;
+  });
+  enhScale=1;
+  document.querySelectorAll('.em-opt').forEach((e,i)=>e.classList.toggle('on',i===0));
+  renderEnhance();
+}
+function downloadEnhanced(){
+  const c=document.getElementById('enhance-canvas');
+  dlCanvas(c,`enhanced-${enhScale===1?'standard':enhScale+'k'}.jpg`,'image/jpeg',0.96);
+}
+
+// ====================== RESIZE ======================
+function loadResizeImage(e){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{
+    resizeImg=img;
+    const c=document.getElementById('resize-canvas');
+    const mw=Math.min(img.width,380);
+    c.width=mw;c.height=img.height*(mw/img.width);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    document.getElementById('resize-editor').style.display='block';
+    document.getElementById('resize-info').textContent=`Original: ${img.width}×${img.height}px`;
+  });
+}
+function selectSz(el){document.querySelectorAll('.size-opt').forEach(s=>s.classList.remove('on'));el.classList.add('on');}
+function doResize(){
+  if(!resizeImg)return;
+  const active=document.querySelector('#tab-resize .size-opt.on');
+  let pw=parseInt(document.getElementById('cw').value);
+  let ph=parseInt(document.getElementById('ch').value);
+  if(!pw||!ph){
+    if(!active)return;
+    const mmW=parseFloat(active.dataset.w),mmH=parseFloat(active.dataset.h),dpi=300;
+    pw=Math.round(mmW/25.4*dpi);ph=Math.round(mmH/25.4*dpi);
+  }
+  const out=document.createElement('canvas');
+  out.width=pw;out.height=ph;
+  const ratio=Math.max(pw/resizeImg.width,ph/resizeImg.height);
+  const sw=pw/ratio,sh=ph/ratio;
+  const sx=(resizeImg.width-sw)/2,sy=(resizeImg.height-sh)/2;
+  const ctx=out.getContext('2d');
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(resizeImg,sx,sy,sw,sh,0,0,pw,ph);
+  dlCanvas(out,'resized-photo.jpg','image/jpeg',0.96);
+}
+
+// ====================== PASSPORT ======================
+function loadPassportImage(e){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{ppImg=img;document.getElementById('pp-editor').style.display='block';renderPassport();});
+}
+function selectPpSize(el){
+  document.querySelectorAll('#pp-sizes .size-opt').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  ppSizeW=parseFloat(el.dataset.pw);ppSizeH=parseFloat(el.dataset.ph);
+  renderPassport();
+}
+function selectPpBg(el){
+  document.querySelectorAll('#tab-passport .cs').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  ppBgColor=el.dataset.c;
+  renderPassport();
+}
+function makePassportPhoto(size){
+  const out=document.createElement('canvas');
+  out.width=size;out.height=Math.round(size*(ppSizeH/ppSizeW));
+  const ctx=out.getContext('2d');
+  ctx.fillStyle=ppBgColor;ctx.fillRect(0,0,out.width,out.height);
+  const bgPk=document.getElementById('pp-bg-pick').value;
+  ctx.fillStyle=bgPk;ctx.fillRect(0,0,out.width,out.height);
+  const ratio=Math.max(out.width/ppImg.width,out.height/ppImg.height);
+  const sw=out.width/ratio,sh=out.height/ratio;
+  const sx=(ppImg.width-sw)/2,sy=(ppImg.height-sh)/2;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(ppImg,sx,sy,sw,sh,0,0,out.width,out.height);
+  return out;
+}
+function renderPassport(){
+  if(!ppImg)return;
+  const cols=parseInt(document.getElementById('pp-cols').value);
+  const rows=parseInt(document.getElementById('pp-rows').value);
+  const gap=parseInt(document.getElementById('pp-gap').value);
+  const ppW=120,ppH=Math.round(120*(ppSizeH/ppSizeW));
+  const sheetW=cols*ppW+(cols-1)*gap+20;
+  const sheetH=rows*ppH+(rows-1)*gap+20;
+  const sheet=document.getElementById('pp-sheet-canvas');
+  sheet.width=sheetW;sheet.height=sheetH;
+  const ctx=sheet.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,sheetW,sheetH);
+  for(let r=0;r<rows;r++){for(let c2=0;c2<cols;c2++){
+    const x=10+c2*(ppW+gap),y=10+r*(ppH+gap);
+    const photo=makePassportPhoto(ppW);
+    ctx.drawImage(photo,x,y);
+    ctx.strokeStyle='#d4d0c8';ctx.lineWidth=0.5;
+    ctx.strokeRect(x,y,ppW,ppH);
+  }}
+  document.getElementById('pp-count-info').textContent=`${cols*rows} photos per sheet (${cols} columns × ${rows} rows)`;
+}
+function downloadPassport(){
+  const cols=parseInt(document.getElementById('pp-cols').value);
+  const rows=parseInt(document.getElementById('pp-rows').value);
+  const gap=parseInt(document.getElementById('pp-gap').value);
+  const dpi=300;
+  const ppWmm=ppSizeW,ppHmm=ppSizeH;
+  const ppWpx=Math.round(ppWmm/25.4*dpi),ppHpx=Math.round(ppHmm/25.4*dpi);
+  const sheetW=cols*ppWpx+(cols-1)*gap+60;
+  const sheetH=rows*ppHpx+(rows-1)*gap+60;
+  const sheet=document.createElement('canvas');
+  sheet.width=sheetW;sheet.height=sheetH;
+  const ctx=sheet.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,sheetW,sheetH);
+  for(let r=0;r<rows;r++){for(let c2=0;c2<cols;c2++){
+    const x=30+c2*(ppWpx+gap),y=30+r*(ppHpx+gap);
+    const photo=makePassportPhoto(ppWpx);
+    ctx.drawImage(photo,x,y);
+    ctx.strokeStyle='#bbbbbb';ctx.lineWidth=1;ctx.strokeRect(x,y,ppWpx,ppHpx);
+  }}
+  dlCanvas(sheet,'passport-print-sheet.jpg','image/jpeg',0.97);
+}
+function downloadSinglePassport(){
+  const dpi=300;
+  const p=makePassportPhoto(Math.round(ppSizeW/25.4*dpi));
+  dlCanvas(p,'passport-photo.jpg','image/jpeg',0.97);
+}
+
+// ====================== BACKGROUND ======================
+function loadBgImage(e){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{bgImg=img;document.getElementById('bg-editor').style.display='grid';renderBg();});
+}
+function selectBgCol(el){
+  document.querySelectorAll('#tab-bg .cs').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');bgColor=el.dataset.c;renderBg();
+}
+function renderBg(){
+  if(!bgImg)return;
+  const canvas=document.getElementById('bg-canvas');const ctx=canvas.getContext('2d');
+  const col=document.getElementById('bg-color-pick').value||bgColor;
+  canvas.width=bgImg.width;canvas.height=bgImg.height;
+  ctx.fillStyle=col;ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(bgImg,0,0);
+}
+function downloadBg(fmt){dlCanvas(document.getElementById('bg-canvas'),'photo-bg.'+fmt,fmt==='png'?'image/png':'image/jpeg',0.96);}
+
+// ====================== COMPRESS ======================
+let compressedDataUrl=null;
+function loadCompressImage(e){
+  const f=e.target.files[0];if(!f)return;
+  compOrigBlob=f;
+  loadImg(f,img=>{
+    compImg=img;
+    document.getElementById('comp-editor').style.display='block';
+    document.getElementById('orig-size').textContent=fmtBytes(f.size);
+    document.getElementById('comp-dim').textContent=img.width+'×'+img.height+'px';
+    const b=document.getElementById('comp-before');
+    const mw=Math.min(img.width,200);b.width=mw;b.height=img.height*(mw/img.width);
+    b.getContext('2d').drawImage(img,0,0,b.width,b.height);
+    renderCompress();
+  });
+}
+function renderCompress(){
+  if(!compImg)return;
+  const q=parseInt(document.getElementById('comp-q').value)/100;
+  const fmt=document.getElementById('comp-fmt').value;
+  document.getElementById('comp-q-v').textContent=Math.round(q*100)+'%';
+  const bar=document.getElementById('comp-q-bar');
+  bar.style.width=(q*100)+'%';
+  bar.style.background=q>0.7?'#16a34a':q>0.4?'#d97706':'#dc2626';
+  const c=document.getElementById('comp-after');
+  c.width=compImg.width;c.height=compImg.height;
+  c.getContext('2d').drawImage(compImg,0,0);
+  const mimeType='image/'+fmt;
+  compressedDataUrl=c.toDataURL(mimeType,q);
+  const sz=Math.round(compressedDataUrl.length*0.75);
+  document.getElementById('comp-size').textContent=fmtBytes(sz);
+  const orig=compOrigBlob?compOrigBlob.size:sz*2;
+  const saved=Math.max(0,Math.round((1-sz/orig)*100));
+  document.getElementById('comp-saved').textContent=saved+'% smaller';
+}
+function downloadCompressed(){
+  if(!compressedDataUrl)return;
+  const fmt=document.getElementById('comp-fmt').value;
+  const a=document.createElement('a');a.download='compressed.'+fmt;a.href=compressedDataUrl;a.click();
+}
+
+// ====================== CONVERT ======================
+function doConvert(e,mimeType,ext){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{
+    const c=document.createElement('canvas');
+    c.width=img.width;c.height=img.height;
+    if(mimeType==='image/jpeg'){const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);}
+    c.getContext('2d').drawImage(img,0,0);
+    const url=c.toDataURL('image/'+mimeType,0.96);
+    const resultId='to'+ext.charAt(0).toUpperCase()+ext.slice(1)+'-result'.replace('tojpg','jpg').replace('topng','png').replace('towebp','webp');
+    const resDiv=document.querySelector(`[id$="${mimeType.split('/')[1]}-result"]`)||document.getElementById('tojpg-result')||document.getElementById('topng-result')||document.getElementById('towebp-result');
+    if(!resDiv)return;
+    const sz=Math.round(url.length*0.75);
+    resDiv.innerHTML=`<div class="card" style="margin-top:0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <canvas id="conv-prev" style="max-width:120px;border-radius:6px"></canvas>
+        <div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">${f.name.replace(/\.[^.]+$/,'')}.${ext}</div>
+          <div style="font-size:13px;color:#888">Format: ${ext.toUpperCase()} · Size: ~${fmtBytes(sz)} · ${img.width}×${img.height}px</div>
+          <div class="btn-row" style="margin-top:12px">
+            <a href="${url}" download="${f.name.replace(/\.[^.]+$/,'')}.${ext}" class="btn pri">⬇ Download ${ext.toUpperCase()}</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    const prev=document.getElementById('conv-prev');
+    const mw=Math.min(img.width,120);prev.width=mw;prev.height=img.height*(mw/img.width);
+    prev.getContext('2d').drawImage(img,0,0,prev.width,prev.height);
+  });
+}
+// Fix: Wire convert result divs
+document.getElementById('tojpg-file').onchange=e=>doConvertTo(e,'jpeg','jpg','tojpg-result');
+document.getElementById('topng-file').onchange=e=>doConvertTo(e,'png','png','topng-result');
+document.getElementById('towebp-file').onchange=e=>doConvertTo(e,'webp','webp','towebp-result');
+function doConvertTo(e,mime,ext,resultId){
+  const f=e.target.files[0];if(!f)return;
+  loadImg(f,img=>{
+    const c=document.createElement('canvas');
+    c.width=img.width;c.height=img.height;
+    if(mime==='jpeg'){const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);}
+    c.getContext('2d').drawImage(img,0,0);
+    const url=c.toDataURL('image/'+mime,0.96);
+    const sz=Math.round(url.length*0.75);
+    document.getElementById(resultId).innerHTML=`<div class="card">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <canvas id="prev-${ext}" style="max-width:100px;border-radius:6px;border:1px solid #e2e0d8"></canvas>
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">${f.name.replace(/\.[^.]+$/,'')}.${ext}</div>
+          <div style="font-size:13px;color:#888">${ext.toUpperCase()} · ~${fmtBytes(sz)} · ${img.width}×${img.height}px</div>
+          <div class="btn-row"><a href="${url}" download="${f.name.replace(/\.[^.]+$/,'')}.${ext}" class="btn pri">⬇ Download ${ext.toUpperCase()}</a></div>
+        </div>
+      </div>
+    </div>`;
+    const prev=document.getElementById('prev-'+ext);
+    const mw=Math.min(img.width,100);prev.width=mw;prev.height=img.height*(mw/img.width);
+    prev.getContext('2d').drawImage(img,0,0,prev.width,prev.height);
+  });
+}
+
+// ====================== BATCH ======================
+function loadBatchImages(e){
+  const files=[...e.target.files];if(!files.length)return;
+  batchImgs=[];
+  let loaded=0;
+  files.forEach(f=>{
+    loadImg(f,img=>{batchImgs.push({img,name:f.name});loaded++;
+      if(loaded===files.length){
+        document.getElementById('batch-editor').style.display='block';
+        renderBatchList();
+      }
+    });
+  });
+}
+function renderBatchList(){
+  document.getElementById('batch-list').innerHTML=batchImgs.map((b,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f0efe9">
+      <canvas id="bprev-${i}" style="width:40px;height:40px;object-fit:cover;border-radius:4px"></canvas>
+      <div style="flex:1;font-size:12px"><div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.name}</div><div style="color:#888">${b.img.width}×${b.img.height}px</div></div>
+    </div>
+  `).join('');
+  batchImgs.forEach((b,i)=>{
+    const c=document.getElementById('bprev-'+i);if(!c)return;
+    c.width=40;c.height=40;
+    const ctx=c.getContext('2d');
+    const r=Math.max(40/b.img.width,40/b.img.height);
+    const sw=40/r,sh=40/r,sx=(b.img.width-sw)/2,sy=(b.img.height-sh)/2;
+    ctx.drawImage(b.img,sx,sy,sw,sh,0,0,40,40);
+  });
+  document.getElementById('batch-q').oninput=function(){document.getElementById('batch-q-v').textContent=this.value+'%';};
+}
+function downloadBatch(){
+  const tw=parseInt(document.getElementById('batch-w').value)||800;
+  const th=parseInt(document.getElementById('batch-h').value)||600;
+  const keepR=document.getElementById('batch-ratio').checked;
+  const fmt=document.getElementById('batch-fmt').value;
+  const q=parseInt(document.getElementById('batch-q').value)/100;
+  batchImgs.forEach((b,i)=>{
+    setTimeout(()=>{
+      const img=b.img;
+      let nw=tw,nh=th;
+      if(keepR){const r=Math.min(tw/img.width,th/img.height);nw=Math.round(img.width*r);nh=Math.round(img.height*r);}
+      const c=document.createElement('canvas');c.width=nw;c.height=nh;
+      c.getContext('2d').drawImage(img,0,0,nw,nh);
+      const ext=fmt==='jpeg'?'jpg':fmt;
+      dlCanvas(c,b.name.replace(/\.[^.]+$/,'')+'-resized.'+ext,'image/'+fmt,q);
+    },i*400);
+  });
+}
+
+// ====================== DRAG & DROP for upload zones ======================
+document.querySelectorAll('.upload-zone').forEach(zone=>{
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop',e=>{
+    e.preventDefault();zone.classList.remove('drag');
+    const files=e.dataTransfer.files;
+    if(!files.length)return;
+    const inp=zone.querySelector('input[type=file]');
+    if(inp){const dt=new DataTransfer();[...files].forEach(f=>dt.items.add(f));inp.files=dt.files;inp.dispatchEvent(new Event('change'));}
+  });
+});
+</script>
+</body>
+</html>
